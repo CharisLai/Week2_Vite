@@ -7,8 +7,6 @@ const API_BASE = import.meta.env.VITE_API_BASE;
 const API_PATH = import.meta.env.VITE_API_PATH;
 
 
-
-
 function App() {
 
   // 登入表單狀態
@@ -43,7 +41,7 @@ const [isAuth, setIsAuth] = useState(false); // 預設: 未登入
 const getProducts = async() => {
   try{
     const response = await axios.get(`${API_BASE}/api/${API_PATH}/admin/products`);
-    console.log(response.data)
+    //console.log(response.data)
     setProducts(response.data.products);
   }
   catch(error){
@@ -52,13 +50,20 @@ const getProducts = async() => {
 
 }
 
-
+  const adminSignin = (formData) => {
+      return  axios.post(
+        `${API_BASE}/admin/signin`,
+        formData
+      )
+    }
 
   // Login API
   const onSubmit = async(e) => {
+        e.preventDefault(); // 阻止表單預設提交行為
     try{
-      e.preventDefault(); // 阻止表單預設提交行為
-      const response = await axios.post(`${API_BASE}/admin/signin`, formData);
+  
+     // const response = await axios.post(`${API_BASE}/admin/signin`, formData);
+      const response = await adminSignin(formData); 
       //console.log(response.data);
       
       // 登入後程序
@@ -67,12 +72,19 @@ const getProducts = async() => {
       document.cookie = `hexToken=${token};expires=${new Date(expired)};`;
       // 修改實體建立時所指派的預設配置
       axios.defaults.headers.common['Authorization'] = token;
-
+      await getProducts(); // 取得產品列表
       setIsAuth(true); // 更新登入狀態為已登入
-
-      getProducts(); // 取得產品列表
+      
     } catch (error) {
+      alert("登入失敗，可能是帳號或密碼錯誤");
       console.log(error.response);
+
+      if (error.response?.status === 401){
+        alert("帳號或密碼錯誤");
+      } else {
+        alert("系統發生錯誤");
+      }
+
       setIsAuth(false);
     }
   }
@@ -85,25 +97,18 @@ const getProducts = async() => {
       .split("; ")
       .find((row) => row.startsWith("hexToken="))
       ?.split("=")[1];
-
       //console.log("目前 Token：", token);
       if (token) {
-       axios.defaults.headers.common.Authorization = token;
-
+        axios.defaults.headers.common.Authorization = token;
       const response = await axios.post(`${API_BASE}/api/user/check`);
       console.log("Token 驗證結果：", response.data);
       }
     }
     catch(error){
+      alert("請重新登入");
       console.log(error.response?.data.message);
     }
   };
-
-
-
-
-
-
 
   return (
     <>
@@ -139,18 +144,15 @@ const getProducts = async() => {
           />
           <label htmlFor="password">Password</label>
         </div>
-
         <button type="submit" className="btn btn-primary w-100 mt-4">Confirm</button>
         </form>
       </div>
-
         <div className="right-panel">
         {/*右側*/} 
       </div>
     </div>
   </div>
   ): ( <div className="container">
-
   {/* 功能按鈕 */}
 <button
   className="btn btn-danger mb-5"
@@ -178,7 +180,6 @@ const getProducts = async() => {
                         <tbody>
                             {
                                 products.map(product => (
-
                                     <tr key={product.id}>
                                         <th scope="row">{product.title}</th>
                                         <td>{product.origin_price}</td>
@@ -193,7 +194,6 @@ const getProducts = async() => {
                                     </tr>
                                 ))
                             }
-
                         </tbody>
                     </table>
                 </div>
@@ -216,7 +216,6 @@ const getProducts = async() => {
                                     <div className="text-secondary mb-2">
                                         <del>{tempProduct.origin_price}</del> 元/
                                         {tempProduct.price} 元
-
                                     </div>
                                     <h5 className="card-title">更多圖片</h5>
                                     <div className="d-flex flex-wrap">
@@ -228,7 +227,6 @@ const getProducts = async() => {
                                                         maxHeight: '100px', marginRight: '10px', cursor: 'pointer',
                                                         border: tempImage === imageUrl ? '2px solid blue' : 'none'
                                                     }}
-
                                                     onClick={() => {
                                                         // 更換主圖
                                                         const newImages = [...tempProduct.imagesUrl];
@@ -249,8 +247,6 @@ const getProducts = async() => {
                 </div>
             </div>
         </div>
-
-
   </div>
 )}
     </>
